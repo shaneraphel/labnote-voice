@@ -1,0 +1,10 @@
+[project]
+name = "labnote-voice"
+version = "0.1.0"
+description = "Voice lab notebook that commits instruments only on finalized user turns"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["websockets>=12"]
+
+[project.scripts]
+labnote-voice = "labnote_voice.cli:main"
