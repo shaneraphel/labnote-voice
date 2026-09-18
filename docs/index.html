@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lab notebook voice agent</title>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, sans-serif; margin: 2rem; max-width: 52rem; line-height: 1.45; }
+    code { background: #f3f3f3; padding: 0.1rem 0.3rem; }
+    pre { background: #111; color: #eee; padding: 1rem; overflow: auto; }
+    button { margin-right: 0.5rem; padding: 0.4rem 0.8rem; }
+    .ok { color: #0a7; }
+    .warn { color: #a60; }
+  </style>
+</head>
+<body>
+  <h1>Lab notebook voice agent</h1>
+  <p>AssemblyAI Voice Agent events: partials stay in the live buffer. A tool runs only on <code>transcript.user</code>. Barge-in cancels the in-flight tool.</p>
+  <p>This page replays the official event types. It does not store an API key.</p>
+  <p>
+    <button id="partial">Fire partial</button>
+    <button id="final">Fire final turn</button>
+    <button id="barge">Barge-in</button>
+    <button id="reset">Reset</button>
+  </p>
+  <pre id="log"></pre>
+  <p class="ok" id="status"></p>
+  <script>
+    const log = [];
+    const inflight = {};
+    function render() {
+      document.getElementById("log").textContent = JSON.stringify({log, inflight}, null, 2);
+    }
+    function onEvent(event) {
+      if (event.type === "transcript.user") {
+        inflight.tool = event.text;
+        log.push(event.text);
+        return "dispatched";
+      }
+      if (event.type === "reply.done" && event.status === "interrupted") {
+        const text = inflight.tool;
+        delete inflight.tool;
+        const i = log.lastIndexOf(text);
+        if (i >= 0) log.splice(i, 1);
+        return "cancelled";
+      }
+      return "ignored";
+    }
+    document.getElementById("partial").onclick = () => {
+      const r = onEvent({type: "transcript.user.delta", text: "set oven"});
+      document.getElementById("status").textContent = r + " (partial must not commit)";
+      render();
+    };
+    document.getElementById("final").onclick = () => {
+      const r = onEvent({type: "transcript.user", text: "set oven 180"});
+      document.getElementById("status").textContent = r;
+      render();
+    };
+    document.getElementById("barge").onclick = () => {
+      const r = onEvent({type: "reply.done", status: "interrupted"});
+      document.getElementById("status").textContent = r;
+      render();
+    };
+    document.getElementById("reset").onclick = () => {
+      log.splice(0); delete inflight.tool;
+      document.getElementById("status").textContent = "";
+      render();
+    };
+    render();
+  </script>
+</body>
+</html>

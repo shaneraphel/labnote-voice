@@ -12,3 +12,7 @@ python -m labnote_voice.cli
 ```
 
 The session uses AssemblyAI Voice Agent events: `session.ready`, `transcript.user.delta`, `transcript.user`, `tool.call`, `reply.done`.
+
+## Demo
+
+https://shaneraphel.github.io/labnote-voice/
